@@ -5,6 +5,7 @@ sealed class TokenType(
     val pattern: String
 ) {
     object Log : TokenType("LOG", "print")
+    object Scan : TokenType("SCAN", "scan")
     object If : TokenType("IF", "if")
     object Else : TokenType("ELSE", "else")
     object For : TokenType("FOR", "for")

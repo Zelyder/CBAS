@@ -44,6 +44,9 @@ class Parser(
         }
 
     private fun parseStatement(): Statement {
+        if (match(TokenType.Scan) != null) {
+            return ScanStatement(parseVariable())
+        }
         if (match(TokenType.Log) != null) {
             return PrintStatement(parseFormula())
         }
@@ -93,6 +96,14 @@ class Parser(
             return AssignmentStatement(variableNode.variable.text, rightFormulaNode)
         }
         throw ParseException("После переменной ожидается оператор присвоения(=) на позиции $position")
+    }
+
+    private fun parseVariable(): String {
+        val variable = match(TokenType.Variable)
+        if (variable != null) {
+            return variable.text
+        }
+        throw ParseException("Ожидается переменная на $position позиции")
     }
 
     private fun parseVariableOrValue(): ExpressionNode {

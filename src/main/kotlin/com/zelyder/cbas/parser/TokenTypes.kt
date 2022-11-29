@@ -3,6 +3,7 @@ package com.zelyder.cbas.parser
 object TokenTypes {
     val tokenList = listOf(
         TokenType.Log,
+        TokenType.Scan,
         TokenType.If,
         TokenType.Else,
         TokenType.For,
