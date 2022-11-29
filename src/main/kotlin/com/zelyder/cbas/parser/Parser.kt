@@ -1,13 +1,12 @@
 package com.zelyder.cbas.parser
 
 import com.zelyder.cbas.ast.*
-import com.zelyder.cbas.utils.isNumber
+import com.zelyder.cbas.values.Value
 
 
 class Parser(
     private val tokens: List<Token>,
-    private var position: Int = 0,
-    private val scope: MutableMap<String, Any> = mutableMapOf()
+    private var position: Int = 0
 ) {
     private fun match(vararg expected: TokenType): Token? {
         if (position < tokens.size) {
@@ -23,20 +22,7 @@ class Parser(
     private fun require(vararg expected: TokenType): Token =
         match(*expected) ?: throw Exception("На позиции $position ожидается ${expected[0].name}")
 
-
-    private fun parseVariableOrNumber(): ExpressionNode {
-        val number = match(TokenType.Number)
-        if (number != null) {
-            return NumberNode(number)
-        }
-        val variable = match(TokenType.Variable)
-        if (variable != null) {
-            return VariableNode(variable)
-        }
-        throw Exception("Ожидается переменная или число на $position позиции")
-    }
-
-    private fun parseVariableOrNumberOrText(): ExpressionNode {
+    private fun parseVariableOrValue(): ExpressionNode {
         val number = match(TokenType.Number)
         if (number != null) {
             return NumberNode(number)
@@ -58,38 +44,33 @@ class Parser(
             require(TokenType.RPar)
             node
         } else {
-            parseVariableOrNumber()
-        }
-    }
-
-    private fun parseParenthesesWithText(): ExpressionNode {
-        return if (match(TokenType.LPar) != null) {
-            val node = parseFormulaWithText()
-            require(TokenType.RPar)
-            node
-        } else {
-            parseVariableOrNumberOrText()
+            parseVariableOrValue()
         }
     }
 
     private fun parseFormula(): ExpressionNode {
         var leftNode = parseParentheses()
-        var operator = match(TokenType.Divide, TokenType.Multiply, TokenType.Minus, TokenType.Plus)
+        var operator = match(
+            TokenType.Divide,
+            TokenType.Multiply,
+            TokenType.Minus,
+            TokenType.Plus,
+            TokenType.Equals,
+            TokenType.GreaterThan,
+            TokenType.LessThan
+        )
         while (operator != null) {
             val rightNode = parseParentheses()
             leftNode = BinOperationNode(operator, leftNode, rightNode)
-            operator = match(TokenType.Divide, TokenType.Multiply, TokenType.Minus, TokenType.Plus)
-        }
-        return leftNode
-    }
-
-    private fun parseFormulaWithText(): ExpressionNode {
-        var leftNode = parseParenthesesWithText()
-        var operator = match(TokenType.Divide, TokenType.Multiply, TokenType.Minus, TokenType.Plus)
-        while (operator != null) {
-            val rightNode = parseParenthesesWithText()
-            leftNode = BinOperationNode(operator, leftNode, rightNode)
-            operator = match(TokenType.Divide, TokenType.Multiply, TokenType.Minus, TokenType.Plus)
+            operator = match(
+                TokenType.Divide,
+                TokenType.Multiply,
+                TokenType.Minus,
+                TokenType.Plus,
+                TokenType.Equals,
+                TokenType.GreaterThan,
+                TokenType.LessThan
+            )
         }
         return leftNode
     }
@@ -97,7 +78,7 @@ class Parser(
     private fun parsePrint(): ExpressionNode {
         val operatorLog = match(TokenType.Log)
         if (operatorLog != null) {
-            return UnaryOperationNode(operatorLog, parseFormulaWithText())
+            return UnaryOperationNode(operatorLog, parseFormula())
         }
         throw Exception("Ожидается унарный оператор ${TokenType.Log.name} на позиции $position")
     }
@@ -107,7 +88,7 @@ class Parser(
             return parsePrint()
         }
         position--
-        val variableNode = parseVariableOrNumber()
+        val variableNode = parseVariableOrValue()
         val assignOperator = match(TokenType.Assign)
         if (assignOperator != null) {
             val rightFormulaNode = parseFormula()
@@ -126,67 +107,5 @@ class Parser(
         return root
     }
 
-    private val logBuilder = StringBuilder()
-    fun run(node: ExpressionNode): Any {
-        if (node is NumberNode) {
-            return node.number.text.toInt()
-        }
-        if (node is TextNode) {
-            return node.text.text.substring(1, node.text.text.length - 1)
-        }
-        if (node is UnaryOperationNode) {
-            when (node.operator.type) {
-                is TokenType.Log -> {
-                    val res = run(node.operand)
-                    logBuilder.append(res)
-                    logBuilder.append('\n')
-                    return res
-                }
-                is TokenType.If -> {
-
-                }
-                else -> throw Exception("Оператор ${node.operator.type.name} не поддерживается")
-            }
-        }
-        if (node is BinOperationNode) {
-            when (node.operator.type) {
-                is TokenType.Plus -> {
-                    val left = run(node.leftNode)
-                    val right = run(node.rightNode)
-                    return if (left.toString().isNumber() && right.toString().isNumber()) {
-                        left.toString().toInt() + right.toString().toInt()
-                    } else {
-                        left.toString() + right.toString()
-                    }
-                }
-                is TokenType.Minus -> return run(node.leftNode).toString().toInt() - run(node.rightNode).toString()
-                    .toInt()
-                is TokenType.Multiply -> return run(node.leftNode).toString().toInt() * run(node.rightNode).toString()
-                    .toInt()
-                is TokenType.Divide -> return run(node.leftNode).toString().toInt() / run(node.rightNode).toString()
-                    .toInt()
-                is TokenType.Assign -> {
-                    val result = run(node.rightNode)
-                    val variableNode: VariableNode = node.leftNode as VariableNode
-                    scope[variableNode.variable.text] = result
-                    return result
-                }
-                else -> throw Exception("Оператор ${node.operator.type.name} не поддерживается")
-            }
-        }
-        if (node is VariableNode) {
-            if (scope.contains(node.variable.text) && scope[node.variable.text] != null) {
-                return scope[node.variable.text]!!
-            } else {
-                throw Exception("Переменная с названием ${node.variable.text} не найдена")
-            }
-        }
-        if (node is StatementsNode) {
-            node.codeStrings.forEach { codeString ->
-                run(codeString)
-            }
-            return logBuilder.toString()
-        }
-        throw Exception("Ошибка!")
-    }
+    fun run(node: ExpressionNode): Value = node.eval()
 }

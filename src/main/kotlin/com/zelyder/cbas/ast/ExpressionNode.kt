@@ -1,4 +1,7 @@
 package com.zelyder.cbas.ast
 
-open class ExpressionNode {
+import com.zelyder.cbas.values.Value
+
+interface ExpressionNode {
+    fun eval(): Value
 }

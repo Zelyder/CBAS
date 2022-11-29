@@ -10,6 +10,7 @@ object TokenTypes {
         TokenType.Variable,
         TokenType.Semicolon,
         TokenType.Space,
+        TokenType.Equals,
         TokenType.Assign,
         TokenType.Multiply,
         TokenType.Divide,

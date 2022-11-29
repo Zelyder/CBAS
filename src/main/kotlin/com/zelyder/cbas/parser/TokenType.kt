@@ -19,6 +19,9 @@ sealed class TokenType(
     object Divide : TokenType("DIVIDE", "/")
     object LessThan : TokenType("LESS_THAN", "<")
     object GreaterThan : TokenType("GREATER_THAN", ">")
+    object Equals : TokenType("EQUALS", "==")
+    object And : TokenType("AND", "&&")
+    object Or : TokenType("OR", "||")
     object LPar : TokenType("LPAR", "\\(")
     object RPar : TokenType("RPAR", "\\)")
 }

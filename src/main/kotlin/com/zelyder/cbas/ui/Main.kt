@@ -36,8 +36,8 @@ fun App() {
                 println(tokens)
                 val parser = Parser(tokens)
                 val rootNode = parser.parseCode()
-                val output = parser.run(rootNode)
-                outputText += "$output"
+                val output = parser.run(rootNode).asString()
+                outputText += output
             }) {
                 Text("Запустить")
             }
