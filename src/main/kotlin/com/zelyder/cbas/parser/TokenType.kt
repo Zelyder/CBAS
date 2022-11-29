@@ -7,6 +7,8 @@ sealed class TokenType(
     object Log : TokenType("LOG", "print")
     object If : TokenType("IF", "if")
     object Else : TokenType("ELSE", "else")
+    object For : TokenType("FOR", "for")
+    object While : TokenType("WHILE", "while")
     object Number : TokenType("NUMBER", "[0-9]+[.,]?[0-9]*")
     object Variable : TokenType("VARIABLE", "[a-zA-Z_]+")
     object Text : TokenType("TEXT", """"[[A-Za-z0-9=:]*\s[A-Za-z0-9=:]*]*"""")

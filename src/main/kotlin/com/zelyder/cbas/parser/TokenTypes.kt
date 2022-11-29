@@ -5,6 +5,8 @@ object TokenTypes {
         TokenType.Log,
         TokenType.If,
         TokenType.Else,
+        TokenType.For,
+        TokenType.While,
         TokenType.Number,
         TokenType.Text,
         TokenType.Variable,

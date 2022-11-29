@@ -44,13 +44,17 @@ class Parser(
         }
 
     private fun parseStatement(): Statement {
-        val operatorLog = match(TokenType.Log)
-        if (operatorLog != null) {
+        if (match(TokenType.Log) != null) {
             return PrintStatement(parseFormula())
         }
-        val ifStatement = match(TokenType.If)
-        if (ifStatement != null) {
+        if (match(TokenType.If) != null) {
             return ifElse()
+        }
+        if (match(TokenType.While) != null) {
+            return whileStatement()
+        }
+        if (match(TokenType.For) != null) {
+            return forStatement()
         }
         return assignmentStatement()
     }
@@ -61,6 +65,24 @@ class Parser(
         val elseToken = match(TokenType.Else)
         val elseStatement = if (elseToken != null) statementOrBlock() else null
         return IfStatement(condition, ifStatement, elseStatement)
+    }
+
+    private fun whileStatement(): Statement {
+        val condition = parseFormula()
+        val statement = statementOrBlock()
+        return WhileStatement(condition, statement)
+    }
+
+    private fun forStatement(): Statement {
+        require(TokenType.LPar)
+        val initialization = assignmentStatement()
+        require(TokenType.Semicolon)
+        val termination = parseFormula()
+        require(TokenType.Semicolon)
+        val increment = assignmentStatement()
+        require(TokenType.RPar)
+        val statement = statementOrBlock()
+        return ForStatement(initialization, termination, increment, statement)
     }
 
     private fun assignmentStatement():Statement {
