@@ -22,6 +22,36 @@ class Parser(
     private fun require(vararg expected: TokenType): Token =
         match(*expected) ?: throw Exception("На позиции $position ожидается ${expected[0].name}")
 
+    private fun parseStatement(): Statement {
+        val operatorLog = match(TokenType.Log)
+        if (operatorLog != null) {
+            return PrintStatement(parseFormula())
+        }
+        val ifStatement = match(TokenType.If)
+        if (ifStatement != null) {
+            return ifElse()
+        }
+        return assignmentStatement()
+    }
+
+    private fun ifElse(): Statement {
+        val condition = parseFormula()
+        val ifStatement = parseStatement()
+        val elseToken = match(TokenType.Else)
+        val elseStatement = if (elseToken != null) parseStatement() else null
+        return IfStatement(condition, ifStatement, elseStatement)
+    }
+
+    private fun assignmentStatement():Statement {
+        val variableNode = parseVariableOrValue() as VariableNode
+        val assignOperator = match(TokenType.Assign)
+        if (assignOperator != null) {
+            val rightFormulaNode = parseFormula()
+            return AssignmentStatement(variableNode.variable.text, rightFormulaNode)
+        }
+        throw RuntimeException("После переменной ожидается оператор присвоения(=) на позиции $position")
+    }
+
     private fun parseVariableOrValue(): ExpressionNode {
         val number = match(TokenType.Number)
         if (number != null) {
@@ -75,32 +105,10 @@ class Parser(
         return leftNode
     }
 
-    private fun parsePrint(): ExpressionNode {
-        val operatorLog = match(TokenType.Log)
-        if (operatorLog != null) {
-            return UnaryOperationNode(operatorLog, parseFormula())
-        }
-        throw Exception("Ожидается унарный оператор ${TokenType.Log.name} на позиции $position")
-    }
-
-    private fun parseExpression(): ExpressionNode {
-        if (match(TokenType.Variable) == null) {
-            return parsePrint()
-        }
-        position--
-        val variableNode = parseVariableOrValue()
-        val assignOperator = match(TokenType.Assign)
-        if (assignOperator != null) {
-            val rightFormulaNode = parseFormula()
-            return BinOperationNode(assignOperator, variableNode, rightFormulaNode)
-        }
-        throw Exception("После переменной ожидается оператор присвоения(=) на позиции $position")
-    }
-
     fun parseCode(): ExpressionNode {
         val root = StatementsNode()
         while (position < tokens.size) {
-            val codeStringNode = parseExpression()
+            val codeStringNode = parseStatement()
             require(TokenType.Semicolon)
             root.addNode(codeStringNode)
         }
