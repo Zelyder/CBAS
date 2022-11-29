@@ -5,7 +5,7 @@ class StringValue(val value: String = ""): Value {
 
     override fun asString(): String = value
 
-    override fun asBoolean(): Boolean = value != ""
+    override fun asBoolean(): Boolean = value == "true"
 
     override fun toString(): String = asString()
 }

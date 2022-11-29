@@ -1,6 +1,7 @@
 package com.zelyder.cbas.parser
 
 import com.zelyder.cbas.ast.*
+import com.zelyder.cbas.utils.ParseException
 import com.zelyder.cbas.values.Value
 
 
@@ -20,7 +21,27 @@ class Parser(
     }
 
     private fun require(vararg expected: TokenType): Token =
-        match(*expected) ?: throw Exception("На позиции $position ожидается ${expected[0].name}")
+        match(*expected) ?: throw ParseException("На позиции $position ожидается ${expected[0].name}")
+
+    private fun block(): Statement {
+        val blockStatement = BlockStatement()
+        require(TokenType.LBrace)
+        var endOfBlock = match(TokenType.RBrace)
+        while (endOfBlock == null) {
+            val statement = parseStatement()
+            require(TokenType.Semicolon)
+            blockStatement.add(statement)
+            endOfBlock = match(TokenType.RBrace)
+        }
+        return blockStatement
+    }
+
+    private fun statementOrBlock(): Statement =
+        if(tokens[position].type is TokenType.LBrace) {
+            block()
+        } else {
+            parseStatement()
+        }
 
     private fun parseStatement(): Statement {
         val operatorLog = match(TokenType.Log)
@@ -36,9 +57,9 @@ class Parser(
 
     private fun ifElse(): Statement {
         val condition = parseFormula()
-        val ifStatement = parseStatement()
+        val ifStatement = statementOrBlock()
         val elseToken = match(TokenType.Else)
-        val elseStatement = if (elseToken != null) parseStatement() else null
+        val elseStatement = if (elseToken != null) statementOrBlock() else null
         return IfStatement(condition, ifStatement, elseStatement)
     }
 
@@ -49,7 +70,7 @@ class Parser(
             val rightFormulaNode = parseFormula()
             return AssignmentStatement(variableNode.variable.text, rightFormulaNode)
         }
-        throw RuntimeException("После переменной ожидается оператор присвоения(=) на позиции $position")
+        throw ParseException("После переменной ожидается оператор присвоения(=) на позиции $position")
     }
 
     private fun parseVariableOrValue(): ExpressionNode {
@@ -65,7 +86,7 @@ class Parser(
         if (text != null) {
             return TextNode(text)
         }
-        throw Exception("Ожидается переменная, число или текст на $position позиции")
+        throw ParseException("Ожидается переменная, число или текст на $position позиции")
     }
 
     private fun parseParentheses(): ExpressionNode {
@@ -78,29 +99,28 @@ class Parser(
         }
     }
 
+    private fun matchBinOperations() = match(
+        TokenType.Divide,
+        TokenType.Multiply,
+        TokenType.Minus,
+        TokenType.Plus,
+        TokenType.Equals,
+        TokenType.NotEquals,
+        TokenType.GreaterThan,
+        TokenType.LessThan,
+        TokenType.LessThanOrEquals,
+        TokenType.GreaterThanOrEquals,
+        TokenType.And,
+        TokenType.Or,
+        )
+
     private fun parseFormula(): ExpressionNode {
         var leftNode = parseParentheses()
-        var operator = match(
-            TokenType.Divide,
-            TokenType.Multiply,
-            TokenType.Minus,
-            TokenType.Plus,
-            TokenType.Equals,
-            TokenType.GreaterThan,
-            TokenType.LessThan
-        )
+        var operator = matchBinOperations()
         while (operator != null) {
             val rightNode = parseParentheses()
             leftNode = BinOperationNode(operator, leftNode, rightNode)
-            operator = match(
-                TokenType.Divide,
-                TokenType.Multiply,
-                TokenType.Minus,
-                TokenType.Plus,
-                TokenType.Equals,
-                TokenType.GreaterThan,
-                TokenType.LessThan
-            )
+            operator = matchBinOperations()
         }
         return leftNode
     }

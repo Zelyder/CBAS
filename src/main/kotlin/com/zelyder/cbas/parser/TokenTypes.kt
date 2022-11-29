@@ -16,9 +16,16 @@ object TokenTypes {
         TokenType.Divide,
         TokenType.Plus,
         TokenType.Minus,
+        TokenType.And,
+        TokenType.Or,
+        TokenType.NotEquals,
+        TokenType.GreaterThanOrEquals,
+        TokenType.LessThanOrEquals,
         TokenType.LessThan,
         TokenType.GreaterThan,
         TokenType.LPar,
-        TokenType.RPar
+        TokenType.RPar,
+        TokenType.LBrace,
+        TokenType.RBrace,
     )
 }

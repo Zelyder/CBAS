@@ -3,6 +3,7 @@ package com.zelyder.cbas.ast
 import com.zelyder.cbas.parser.Context
 import com.zelyder.cbas.parser.Token
 import com.zelyder.cbas.parser.TokenType
+import com.zelyder.cbas.utils.ParseException
 import com.zelyder.cbas.values.Value
 
 class UnaryOperationNode(
@@ -17,7 +18,7 @@ class UnaryOperationNode(
                 Context.logBuilder.append('\n')
                 return res
             }
-            else -> throw Exception("Оператор ${operator.type.name} не поддерживается")
+            else -> throw ParseException("Оператор ${operator.type.name} не поддерживается")
         }
     }
 }

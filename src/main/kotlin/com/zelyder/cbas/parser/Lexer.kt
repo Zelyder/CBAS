@@ -1,5 +1,7 @@
 package com.zelyder.cbas.parser
 
+import com.zelyder.cbas.utils.ParseException
+
 class Lexer(
     private val code: String,
     private var position: Int = 0,
@@ -24,6 +26,6 @@ class Lexer(
                 return true
             }
         }
-        throw Exception("На позиции $position обнаружена ошибка")
+        throw ParseException("На позиции $position обнаружена ошибка")
     }
 }
