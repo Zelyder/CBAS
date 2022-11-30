@@ -9,7 +9,6 @@ object TokenTypes {
         TokenType.For,
         TokenType.While,
         TokenType.Number,
-        TokenType.Text,
         TokenType.Variable,
         TokenType.Semicolon,
         TokenType.Space,

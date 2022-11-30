@@ -1,6 +1,5 @@
 package com.zelyder.cbas.ast
 
-import com.zelyder.cbas.parser.Context
 import com.zelyder.cbas.parser.Token
 import com.zelyder.cbas.parser.TokenType
 import com.zelyder.cbas.utils.ParseException
@@ -16,17 +15,10 @@ class BinOperationNode(
 ) : ExpressionNode {
 
     override fun eval(): Value {
-        if (operator.type is TokenType.Assign) {
-            val result = rightNode.eval()
-            val variableNode: VariableNode = leftNode as VariableNode
-            Context.scope[variableNode.variable.text] = result
-            return result
-        }
-
         val leftValue = leftNode.eval()
         val rightValue = rightNode.eval()
         when {
-            leftValue is StringValue || rightValue is StringValue -> {
+            leftValue is StringValue -> {
                 return when (operator.type) {
                     is TokenType.Plus -> StringValue(leftValue.asString() + rightValue.asString())
                     is TokenType.Equals -> BooleanValue(leftValue.asString() == rightValue.asString())

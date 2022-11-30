@@ -1,0 +1,10 @@
+print "Введите количество итераций:";
+scan a;
+iterationText = "i = ";
+print "a = " + a;
+for (i = 0;i < a;i = i + 1){
+    print iterationText + i;
+    if (i > 5) {
+        print "i > 5";
+    };
+};

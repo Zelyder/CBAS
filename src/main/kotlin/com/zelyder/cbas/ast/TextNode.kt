@@ -6,6 +6,6 @@ import com.zelyder.cbas.values.Value
 
 class TextNode(val text: Token): ExpressionNode {
     override fun eval(): Value {
-        return StringValue(text.text.substring(1, text.text.length - 1))
+        return StringValue(text.text)
     }
 }

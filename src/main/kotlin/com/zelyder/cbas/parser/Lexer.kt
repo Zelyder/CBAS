@@ -10,7 +10,19 @@ class Lexer(
 
     fun lexAnalysis(): List<Token> {
         while (position < code.length){
-            nextToken()
+            if(code[position] == '"'){
+                val builder = StringBuilder()
+                val startPosition = position
+                position++
+                while (code[position] != '"'){
+                    builder.append(code[position])
+                    position++
+                }
+                tokenList.add(Token(TokenType.Text, builder.toString(), startPosition))
+                position++
+            }else {
+                nextToken()
+            }
         }
         return tokenList.filter { it.type != TokenType.Space }
     }

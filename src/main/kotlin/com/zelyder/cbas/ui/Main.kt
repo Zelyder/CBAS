@@ -18,6 +18,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.zelyder.cbas.parser.Lexer
 import com.zelyder.cbas.parser.Parser
+import java.io.File
 
 @Composable
 @Preview
@@ -53,8 +54,22 @@ fun App() {
     }
 }
 
-fun main() = application {
+fun mainUi() = application {
     Window(onCloseRequest = ::exitApplication) {
         App()
     }
+}
+
+fun mainConsole() {
+    val inputText = File("src/main/resources/program.cbas").readText()
+    val lexer = Lexer(inputText)
+    val tokens = lexer.lexAnalysis()
+    println(tokens)
+    val parser = Parser(tokens)
+    val rootNode = parser.parseCode()
+    parser.run(rootNode)
+}
+
+fun main() {
+    mainConsole()
 }
